@@ -61,7 +61,7 @@ public class CitaManager implements CitaService {
         List<Cita> citasExistentes = citasPorMedico.get(medico);
         if (citasExistentes != null) {
             for (Cita citaExistente : citasExistentes) {
-                if (Math.abs(citaExistente.getFechaHora().compareTo(fechaHora)) < 2) { // 2 horas de diferencia
+                if (Math.abs(citaExistente.getFechaHora().compareTo(fechaHora)) < 2) {
                     return false;
                 }
             }
@@ -73,7 +73,7 @@ public class CitaManager implements CitaService {
         List<Cita> citasExistentes = citasPorSala.get(sala);
         if (citasExistentes != null) {
             for (Cita citaExistente : citasExistentes) {
-                if (Math.abs(citaExistente.getFechaHora().compareTo(fechaHora)) < 2) { // 2 horas de diferencia
+                if (Math.abs(citaExistente.getFechaHora().compareTo(fechaHora)) < 2) {
                     return false;
                 }
             }

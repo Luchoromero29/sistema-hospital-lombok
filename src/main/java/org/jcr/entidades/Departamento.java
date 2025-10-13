@@ -1,5 +1,8 @@
 package org.jcr.entidades;
+
+import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -7,28 +10,42 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Setter
+@Entity
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Departamento implements Serializable {
 
-    private final String nombre;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(nullable = false, length = 80)
+    private String nombre;
 
-    private final EspecialidadMedica especialidad;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private EspecialidadMedica especialidad;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hospital_id")
     private Hospital hospital;
 
+    @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Medico> medicos = new ArrayList<>();
 
-    private final List<Medico> medicos = new ArrayList<>();
-
-
-    private final List<Sala> salas = new ArrayList<>();
-
+    @OneToMany(mappedBy = "departamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Sala> salas = new ArrayList<>();
     public Departamento(String nombre, EspecialidadMedica especialidad) {
         this.nombre = validarString(nombre, "El nombre del departamento no puede ser nulo ni vacío");
         this.especialidad = Objects.requireNonNull(especialidad, "La especialidad no puede ser nula");
+        this.salas = new ArrayList<>();
+        this.medicos = new ArrayList<>();
     }
-
 
     public void setHospital(Hospital hospital) {
         if (this.hospital != hospital) {
@@ -55,7 +72,6 @@ public class Departamento implements Serializable {
         return sala;
     }
 
-
     public List<Medico> getMedicos() {
         return Collections.unmodifiableList(medicos);
     }
@@ -68,7 +84,7 @@ public class Departamento implements Serializable {
     public String toString() {
         return "Departamento{" +
                 "nombre='" + nombre + '\'' +
-                ", especialidad=" + especialidad.getDescripcion() +
+                ", especialidad=" + especialidad +
                 ", hospital=" + (hospital != null ? hospital.getNombre() : "null") +
                 '}';
     }

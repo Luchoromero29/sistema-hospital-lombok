@@ -1,4 +1,6 @@
 package org.jcr.entidades;
+
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -9,22 +11,36 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Setter
+@Entity
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public class Medico extends Persona implements Serializable {
-    private final Matricula matricula;
-    private final EspecialidadMedica especialidad;
+
+    @Embedded
+    private Matricula matricula;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private EspecialidadMedica especialidad;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departamento_id")
     private Departamento departamento;
-    private final List<Cita> citas = new ArrayList<>();
 
-
+    @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Cita> citas = new ArrayList<>();
     public Medico(String nombre, String apellido, String dni, LocalDate fechaNacimiento,
                   TipoSangre tipoSangre, String numeroMatricula, EspecialidadMedica especialidad) {
         super(nombre, apellido, dni, fechaNacimiento, tipoSangre);
         this.matricula = new Matricula(numeroMatricula);
-        this.especialidad = Objects.requireNonNull(especialidad, "La especialidad no puede ser nula");
-    }
 
+        this.especialidad = Objects.requireNonNull(especialidad, "La especialidad no puede ser nula");
+        this.citas = new ArrayList<>();
+    }
 
     public void setDepartamento(Departamento departamento) {
         if (this.departamento != departamento) {
@@ -33,20 +49,23 @@ public class Medico extends Persona implements Serializable {
     }
 
     public void addCita(Cita cita) {
-        this.citas.add(cita);
+        if (cita != null && !citas.contains(cita)) {
+            citas.add(cita);
+            cita.setMedico(this);
+        }
     }
 
     public List<Cita> getCitas() {
-        return Collections.unmodifiableList(new ArrayList<>(citas));
+        return Collections.unmodifiableList(citas);
     }
 
     @Override
     public String toString() {
         return "Medico{" +
-                "nombre='" + nombre + '\'' +
-                ", apellido='" + apellido + '\'' +
-                ", especialidad=" + especialidad.getDescripcion() +
-                ", matricula=" + matricula.getNumero() +
+                "nombre='" + getNombre() + '\'' +
+                ", apellido='" + getApellido() + '\'' +
+                ", especialidad=" + (especialidad != null ? especialidad.name() : "null") +
+                ", matricula=" + (matricula != null ? matricula.getNumero() : "null") +
                 '}';
     }
 }

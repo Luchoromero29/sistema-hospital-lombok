@@ -1,8 +1,7 @@
 package org.jcr.entidades;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -11,15 +10,41 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Setter
+@Entity
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class HistoriaClinica implements Serializable {
-    private final String numeroHistoria;
-    private final Paciente paciente;
-    private final LocalDateTime fechaCreacion;
-    private final List<String> diagnosticos = new ArrayList<>();
-    private final List<String> tratamientos = new ArrayList<>();
-    private final List<String> alergias = new ArrayList<>();
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "numero_historia", nullable = false, unique = true, length = 50)
+    private String numeroHistoria;
+
+    @OneToOne
+    @JoinColumn(name = "paciente_id", nullable = false, unique = true)
+    private Paciente paciente;
+
+    @Column(nullable = false)
+    private LocalDateTime fechaCreacion;
+    @ElementCollection
+    @CollectionTable(name = "diagnosticos", joinColumns = @JoinColumn(name = "historia_id"))
+    @Column(name = "diagnostico", nullable = false, length = 200)
+    private List<String> diagnosticos = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "tratamientos", joinColumns = @JoinColumn(name = "historia_id"))
+    @Column(name = "tratamiento", nullable = false, length = 200)
+    private List<String> tratamientos = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "alergias", joinColumns = @JoinColumn(name = "historia_id"))
+    @Column(name = "alergia", nullable = false, length = 200)
+    private List<String> alergias = new ArrayList<>();
 
     public HistoriaClinica(Paciente paciente) {
         this.paciente = Objects.requireNonNull(paciente, "El paciente no puede ser nulo");
@@ -65,7 +90,7 @@ public class HistoriaClinica implements Serializable {
     public String toString() {
         return "HistoriaClinica{" +
                 "numeroHistoria='" + numeroHistoria + '\'' +
-                ", paciente=" + paciente.getNombreCompleto() +
+                ", paciente=" + (paciente != null ? paciente.getNombreCompleto() : "N/A") +
                 ", fechaCreacion=" + fechaCreacion +
                 '}';
     }

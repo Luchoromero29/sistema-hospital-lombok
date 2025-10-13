@@ -1,9 +1,7 @@
 package org.jcr.entidades;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
@@ -13,24 +11,39 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Setter
+@Entity
 @Getter
+@Setter
+@NoArgsConstructor
+@SuperBuilder
 public class Paciente extends Persona implements Serializable {
-    private final HistoriaClinica historiaClinica;
-    private final String telefono;
-    private final String direccion;
+
+    @OneToOne(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private HistoriaClinica historiaClinica;
+
+    @Column(nullable = false, length = 50)
+    private String telefono;
+
+    @Column(nullable = false, length = 100)
+    private String direccion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hospital_id")
     private Hospital hospital;
 
-    private final List<Cita> citas = new ArrayList<>();
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Cita> citas = new ArrayList<>();
 
     public Paciente(String nombre, String apellido, String dni, LocalDate fechaNacimiento,
                     TipoSangre tipoSangre, String telefono, String direccion) {
         super(nombre, apellido, dni, fechaNacimiento, tipoSangre);
         this.telefono = validarString(telefono, "El teléfono no puede ser nulo ni vacío");
         this.direccion = validarString(direccion, "La dirección no puede ser nula ni vacía");
+        this.citas = new ArrayList<>();
+
         this.historiaClinica = new HistoriaClinica(this);
     }
-
 
     public void setHospital(Hospital hospital) {
         if (this.hospital != hospital) {
@@ -45,11 +58,14 @@ public class Paciente extends Persona implements Serializable {
     }
 
     public void addCita(Cita cita) {
-        this.citas.add(cita);
+        if (cita != null && !this.citas.contains(cita)) {
+            this.citas.add(cita);
+            cita.setPaciente(this);
+        }
     }
 
     public List<Cita> getCitas() {
-        return Collections.unmodifiableList(new ArrayList<>(citas));
+        return Collections.unmodifiableList(citas);
     }
 
     private String validarString(String valor, String mensajeError) {
@@ -63,11 +79,11 @@ public class Paciente extends Persona implements Serializable {
     @Override
     public String toString() {
         return "Paciente{" +
-                "nombre='" + nombre + '\'' +
-                ", apellido='" + apellido + '\'' +
-                ", dni='" + dni + '\'' +
+                "nombre='" + getNombre() + '\'' +
+                ", apellido='" + getApellido() + '\'' +
+                ", dni='" + getDni() + '\'' +
                 ", telefono='" + telefono + '\'' +
-                ", tipoSangre=" + tipoSangre.getDescripcion() +
+                ", tipoSangre=" + getTipoSangre() +
                 '}';
     }
 }

@@ -1,22 +1,40 @@
 package org.jcr.entidades;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
 
-@Setter
+@MappedSuperclass
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public abstract class Persona implements Serializable {
-    protected final String nombre;
-    protected final String apellido;
-    protected final String dni;
-    protected final LocalDate fechaNacimiento;
-    protected final TipoSangre tipoSangre;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 50)
+    protected String nombre;
+
+    @Column(nullable = false, length = 50)
+    protected String apellido;
+
+    @Column(nullable = false, unique = true, length = 8)
+    protected String dni;
+
+    @Column(nullable = false)
+    protected LocalDate fechaNacimiento;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    protected TipoSangre tipoSangre;
 
     public Persona(String nombre, String apellido, String dni, LocalDate fechaNacimiento, TipoSangre tipoSangre) {
         this.nombre = validarString(nombre, "El nombre no puede ser nulo ni vacío");
@@ -25,7 +43,6 @@ public abstract class Persona implements Serializable {
         this.fechaNacimiento = Objects.requireNonNull(fechaNacimiento, "La fecha de nacimiento no puede ser nula");
         this.tipoSangre = Objects.requireNonNull(tipoSangre, "El tipo de sangre no puede ser nulo");
     }
-
 
     public String getNombreCompleto() {
         return nombre + " " + apellido;
@@ -58,7 +75,7 @@ public abstract class Persona implements Serializable {
                 ", apellido='" + apellido + '\'' +
                 ", dni='" + dni + '\'' +
                 ", fechaNacimiento=" + fechaNacimiento +
-                ", tipoSangre=" + tipoSangre.getDescripcion() +
+                ", tipoSangre=" + tipoSangre +
                 '}';
     }
 }

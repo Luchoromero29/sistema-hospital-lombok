@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group = 'org.jcr'
@@ -10,25 +11,30 @@ repositories {
 }
 
 dependencies {
-
-    // JUnit para pruebas (opcional)
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    // --- JPA + Hibernate ---
     implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
-    implementation 'org.hibernate.orm:hibernate-core:6.4.6.Final' // o compatible con tu Boot
-    runtimeOnly 'com.h2database:h2:2.2.224' // o tu driver real
-    // https://mvnrepository.com/artifact/org.projectlombok/lombok
-    implementation("org.projectlombok:lombok:1.18.42")
+    implementation 'org.hibernate.orm:hibernate-core:6.4.6.Final'
 
-    compileOnly 'org.projectlombok:lombok:1.18.30'
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
-    // JPA API
+    // --- Base de datos H2 (embebida) ---
+    runtimeOnly 'com.h2database:h2:2.2.224'
 
+    // --- Lombok (usa misma versión para compileOnly y annotationProcessor) ---
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+    testCompileOnly 'org.projectlombok:lombok:1.18.42'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
 
-
-    // Logger (opcional pero recomendable)
+    // --- Logging (para ver SQL y logs de Hibernate) ---
     implementation 'org.slf4j:slf4j-simple:2.0.13'
 
+    // --- Testing ---
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+application {
+    // reemplazá esto con el nombre de tu clase main
+    mainClass = 'org.example.Main'
 }
 
 test {

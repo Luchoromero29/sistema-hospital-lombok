@@ -1,22 +1,48 @@
 package org.jcr.entidades;
-import lombok.*;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 
-
-@Setter
+@Entity
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Cita implements Serializable {
-    private final Paciente paciente;
-    private final Medico medico;
-    private final Sala sala;
-    private final LocalDateTime fechaHora;
-    private final BigDecimal costo;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "paciente_id", nullable = false)
+    private Paciente paciente;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "medico_id", nullable = false)
+    private Medico medico;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "sala_id", nullable = false)
+    private Sala sala;
+
+    @Column(nullable = false)
+    private LocalDateTime fechaHora;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal costo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private EstadoCita estado;
+
+    @Column(length = 500)
     private String observaciones;
 
     public Cita(Paciente paciente, Medico medico, Sala sala, LocalDateTime fechaHora, BigDecimal costo) {
@@ -40,11 +66,11 @@ public class Cita implements Serializable {
     @Override
     public String toString() {
         return "Cita{" +
-                "paciente=" + paciente.getNombreCompleto() +
-                ", medico=" + medico.getNombreCompleto() +
-                ", sala=" + sala.getNumero() +
+                "paciente=" + (paciente != null ? paciente.getNombreCompleto() : "N/A") +
+                ", medico=" + (medico != null ? medico.getNombreCompleto() : "N/A") +
+                ", sala=" + (sala != null ? sala.getNumero() : "N/A") +
                 ", fechaHora=" + fechaHora +
-                ", estado=" + estado.getDescripcion() +
+                ", estado=" + estado +
                 ", costo=" + costo +
                 '}';
     }
@@ -81,20 +107,13 @@ public class Cita implements Serializable {
         Medico medico = medicos.get(dniMedico);
         Sala sala = salas.get(numeroSala);
 
-        if (paciente == null) {
-            throw new CitaException("Paciente no encontrado: " + dniPaciente);
-        }
-        if (medico == null) {
-            throw new CitaException("Médico no encontrado: " + dniMedico);
-        }
-        if (sala == null) {
-            throw new CitaException("Sala no encontrada: " + numeroSala);
-        }
+        if (paciente == null) throw new CitaException("Paciente no encontrado: " + dniPaciente);
+        if (medico == null) throw new CitaException("Médico no encontrado: " + dniMedico);
+        if (sala == null) throw new CitaException("Sala no encontrada: " + numeroSala);
 
         Cita cita = new Cita(paciente, medico, sala, fechaHora, costo);
         cita.setEstado(estado);
         cita.setObservaciones(observaciones);
-
         return cita;
     }
 }

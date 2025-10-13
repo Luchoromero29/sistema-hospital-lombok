@@ -1,4 +1,6 @@
 package org.jcr.entidades;
+
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serializable;
@@ -7,28 +9,40 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Setter
+@Entity
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Hospital implements Serializable {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private final String nombre;
+    @Column(nullable = false, length = 80)
+    private String nombre;
 
+    @Column(nullable = false, length = 150)
+    private String direccion;
 
-    private final String direccion;
+    @Column(nullable = false, length = 30)
+    private String telefono;
 
+    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Departamento> departamentos = new ArrayList<>();
 
-    private final String telefono;
-
-
-    private final List<Departamento> departamentos = new ArrayList<>();
-
-    private final List<Paciente> pacientes = new ArrayList<>();
-
+    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Paciente> pacientes = new ArrayList<>();
     public Hospital(String nombre, String direccion, String telefono) {
         this.nombre = validarString(nombre, "El nombre del hospital no puede ser nulo ni vacío");
         this.direccion = validarString(direccion, "La dirección no puede ser nula ni vacía");
         this.telefono = validarString(telefono, "El teléfono no puede ser nulo ni vacío");
+        this.departamentos = new ArrayList<>();
+        this.pacientes = new ArrayList<>();
     }
 
     public void agregarDepartamento(Departamento departamento) {
